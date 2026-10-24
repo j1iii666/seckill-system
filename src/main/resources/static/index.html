@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>秒杀演示 · 可达鸭限量款</title>
+<style>
+  :root {
+    --bg-0: #0b1020;
+    --bg-1: #131a2e;
+    --card: rgba(255, 255, 255, .04);
+    --card-line: rgba(255, 255, 255, .08);
+    --text: #eef2ff;
+    --text-dim: #94a3b8;
+    --brand: #ef4444;
+    --brand-2: #f97316;
+    --ok: #34d399;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    padding: 24px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #1e3a8a55, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #7c2d1255, transparent 55%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  }
+
+  .card {
+    width: min(480px, 100%);
+    padding: 28px;
+    border-radius: 24px;
+    border: 1px solid var(--card-line);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
+    backdrop-filter: blur(12px);
+  }
+
+  /* ---------- 头部 ---------- */
+  .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .title { font-size: 22px; font-weight: 700; letter-spacing: .2px; }
+  .subtitle { margin-top: 6px; font-size: 13px; color: var(--text-dim); }
+  .badge {
+    flex: none; padding: 6px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; color: #fca5a5;
+    background: rgba(239, 68, 68, .14); border: 1px solid rgba(239, 68, 68, .3);
+    white-space: nowrap;
+  }
+
+  .price-row {
+    margin-top: 24px; display: flex; align-items: baseline; gap: 8px;
+  }
+  .price { font-size: 32px; font-weight: 800; color: #fbbf24; letter-spacing: -.5px; }
+  .price small { font-size: 15px; font-weight: 600; }
+  .origin { font-size: 13px; color: var(--text-dim); text-decoration: line-through; }
+
+  /* ---------- 指标 ---------- */
+  .stats {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .stat {
+    padding: 14px 12px;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    text-align: center;
+  }
+  .stat .k { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .stat .v {
+    margin-top: 6px; font-size: 24px; font-weight: 700; line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .v.stock { color: var(--ok); }
+  .stat .v.zero { color: #f87171; }
+  .stat .v.small { font-size: 20px; }
+
+  /* ---------- 进度条 ---------- */
+  .bar-block { margin-top: 18px; }
+  .bar-head {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-dim); margin-bottom: 8px;
+  }
+  .bar-wrap {
+    height: 10px; border-radius: 999px; overflow: hidden;
+    background: rgba(255, 255, 255, .08);
+  }
+  .bar {
+    height: 100%; width: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--ok), #10b981);
+    transition: width .45s cubic-bezier(.4, 0, .2, 1), background .3s;
+  }
+  .bar.low { background: linear-gradient(90deg, #fbbf24, var(--brand-2)); }
+  .bar.empty { background: #f87171; }
+
+  /* ---------- 按钮 ---------- */
+  .actions { margin-top: 24px; display: grid; gap: 10px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 16px 18px; border: 0; border-radius: 14px;
+    font-family: inherit; font-size: 17px; font-weight: 700; color: #fff;
+    cursor: pointer; transition: transform .08s ease, filter .2s, box-shadow .2s;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    box-shadow: 0 10px 24px rgba(239, 68, 68, .3);
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.06); }
+  .btn:active:not(:disabled) { transform: scale(.985); }
+  .btn:disabled {
+    cursor: not-allowed; color: #cbd5e1; box-shadow: none;
+    background: rgba(148, 163, 184, .18);
+  }
+
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn.ghost {
+    padding: 12px 10px; font-size: 13px; font-weight: 600;
+    color: #cbd5e1; background: rgba(255, 255, 255, .06);
+    border: 1px solid var(--card-line); box-shadow: none;
+  }
+  .btn.ghost:hover:not(:disabled) { background: rgba(255, 255, 255, .1); filter: none; }
+
+  /* ---------- 日志 ---------- */
+  .log {
+    margin-top: 16px; min-height: 46px; display: flex; align-items: center;
+    padding: 12px 14px; border-radius: 12px;
+    font-size: 13px; line-height: 1.5; color: #93c5fd;
+    background: rgba(0, 0, 0, .28); border: 1px solid var(--card-line);
+    font-variant-numeric: tabular-nums;
+  }
+  .log.bad { color: #fca5a5; }
+  .log.good { color: #6ee7b7; }
+
+  .hint { margin-top: 14px; font-size: 12px; line-height: 1.7; color: var(--text-dim); }
+  .hint b { color: #cbd5e1; font-weight: 600; }
+
+  /* ---------- 售罄弹窗 ---------- */
+  .mask {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: rgba(3, 7, 18, .72); backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none; transition: opacity .22s ease;
+  }
+  .mask.show { opacity: 1; pointer-events: auto; }
+
+  .modal {
+    width: min(360px, 100%); padding: 28px 24px 22px;
+    border-radius: 22px; text-align: center;
+    border: 1px solid var(--card-line);
+    background: linear-gradient(180deg, #1b2236, #121828);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+    transform: translateY(14px) scale(.97);
+    transition: transform .26s cubic-bezier(.2, .9, .3, 1.2);
+  }
+  .mask.show .modal { transform: none; }
+
+  /* 纯 CSS 画的售罄图标，不用图片 */
+  .icon {
+    width: 68px; height: 68px; margin: 0 auto 16px;
+    border-radius: 50%; position: relative;
+    background: radial-gradient(circle at 30% 25%, #f87171, #b91c1c);
+    box-shadow: 0 12px 30px rgba(185, 28, 28, .45);
+  }
+  .icon::before, .icon::after {
+    content: ""; position: absolute; top: 50%; left: 50%;
+    width: 30px; height: 4px; border-radius: 2px; background: #fff;
+  }
+  .icon::before { transform: translate(-50%, -50%) rotate(45deg); }
+  .icon::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+  .modal h2 { font-size: 22px; font-weight: 800; letter-spacing: .5px; }
+  .modal p { margin-top: 10px; font-size: 13px; line-height: 1.7; color: var(--text-dim); }
+  .modal .mini {
+    margin-top: 14px; padding: 10px 12px; border-radius: 10px;
+    font-size: 13px; color: #fcd34d; background: rgba(251, 191, 36, .1);
+    border: 1px solid rgba(251, 191, 36, .22);
+    font-variant-numeric: tabular-nums;
+  }
+  .modal .actions { margin-top: 20px; }
+  .modal .btn { padding: 13px; font-size: 15px; }
+  .modal .btn.ghost { font-size: 14px; }
+
+  @media (max-width: 400px) {
+    .card { padding: 22px; }
+    .price { font-size: 28px; }
+    .stat .v { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="head">
+    <div>
+      <div class="title">可达鸭 · 限量款</div>
+      <div class="subtitle">秒杀演示商品 · 1000 人抢 100 件</div>
+    </div>
+    <span class="badge" id="badge">限量 100 件</span>
+  </div>
+
+  <div class="price-row">
+    <span class="price"><small>¥</small>19999</span>
+    <span class="origin">¥29999</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="k">剩余库存</div>
+      <div class="v stock" id="stock">--</div>
+    </div>
+    <div class="stat">
+      <div class="k">已抢订单</div>
+      <div class="v small" id="orders">--</div>
+    </div>
+    <div class="stat">
+      <div class="k">队列积压</div>
+      <div class="v small" id="queue">--</div>
+    </div>
+  </div>
+
+  <div class="bar-block">
+    <div class="bar-head">
+      <span>库存余量</span>
+      <span id="pct">--</span>
+    </div>
+    <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="buy">立即抢购</button>
+    <div class="btn-row">
+      <button class="btn ghost" id="init">预热库存</button>
+      <button class="btn ghost" id="reset">重置演示</button>
+    </div>
+  </div>
+
+  <div class="log" id="log">先点「预热库存」，再点「立即抢购」</div>
+  <div class="hint">每 0.8 秒自动刷新。开两个窗口同时点抢购，能看到库存实时下降；<b>超卖 0</b>。</div>
+</div>
+
+<!-- 售罄弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="icon"></div>
+    <h2>已售罄</h2>
+    <p>100 件全部抢完，库存已归零。<br>Redis 原子扣减保证没有超卖。</p>
+    <div class="mini" id="soldInfo">成交 100 件 · 超卖 0 件</div>
+    <div class="actions">
+      <button class="btn" id="again">再来一轮</button>
+      <button class="btn ghost" id="close">知道了</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  let soldOut = false;      // 当前是否售罄
+  let wasSoldOut = false;   // 上一轮状态，用于「刚售罄」时自动弹窗
+  let busy = false;
+
+  function fmt(v) {
+    return (v === null || v === undefined) ? '未预热' : v;
+  }
+
+  function paintLog(text, kind) {
+    const el = $('log');
+    el.textContent = text;
+    el.className = 'log' + (kind ? ' ' + kind : '');
+  }
+
+  function openModal() {
+    $('mask').classList.add('show');
+  }
+  function closeModal() {
+    $('mask').classList.remove('show');
+  }
+
+  async function refresh() {
+    let r;
+    try {
+      r = await fetch('/api/status').then(x => x.json());
+    } catch (e) {
+      paintLog('后端未启动或连接失败', 'bad');
+      return null;
+    }
+
+    const warmed = r.stock !== null && r.stock !== undefined;
+    const stock = warmed ? Number(r.stock) : null;
+    const orders = Number(r.orders) || 0;
+
+    $('stock').textContent = warmed ? stock : '未预热';
+    $('stock').className = 'v stock' + (warmed && stock === 0 ? ' zero' : '');
+    $('orders').textContent = orders;
+    $('queue').textContent = r.queue ?? 0;
+
+    const total = Math.max(orders + (stock || 0), 100);
+    const pctNum = warmed ? Math.max(0, Math.min(100, stock / total * 100)) : 0;
+    $('pct').textContent = warmed ? Math.round(pctNum) + '%' : '--';
+    const bar = $('bar');
+    bar.style.width = pctNum + '%';
+    bar.className = 'bar' + (pctNum === 0 ? ' empty' : pctNum <= 20 ? ' low' : '');
+
+    soldOut = warmed && stock === 0;
+    applySoldOutState();
+
+    // 刚变成售罄 → 自动弹窗（每次售罄只弹一次）
+    if (soldOut && !wasSoldOut) {
+      $('soldInfo').textContent = '成交 ' + orders + ' 件 · 超卖 0 件';
+      openModal();
+    }
+    wasSoldOut = soldOut;
+    return { stock, orders };
+  }
+
+  function applySoldOutState() {
+    const buy = $('buy');
+    buy.disabled = soldOut;
+    buy.textContent = soldOut ? '已售罄' : '立即抢购';
+    $('badge').textContent = soldOut ? '已抢完' : '限量 100 件';
+  }
+
+  async function post(path) {
+    return fetch(path, { method: 'POST' }).then(x => x.json());
+  }
+
+  $('buy').onclick = async () => {
+    if (busy) return;
+    const userId = Math.floor(Math.random() * 1e9);
+
+    // 已售罄时点按钮：直接弹窗，不发请求
+    if (soldOut) {
+      openModal();
+      return;
+    }
+
+    busy = true;
+    $('buy').disabled = true;
+    try {
+      const r = await fetch('/api/seckill?userId=' + userId, { method: 'POST' }).then(x => x.json());
+      const ok = r.code === 0;
+      paintLog(r.msg + '（用户 ' + userId + '）', ok ? 'good' : 'bad');
+      await refresh();
+      // 这次没抢到且原因是没库存 → 弹窗
+      if (!ok && r.msg === '库存不足') {
+        openModal();
+      }
+    } catch (e) {
+      paintLog('请求失败：' + e.message, 'bad');
+    } finally {
+      busy = false;
+      applySoldOutState();
+    }
+  };
+
+  $('init').onclick = async () => {
+    const r = await post('/api/init');
+    paintLog(r.msg + '：Redis 库存 ' + r.stock + ' 件', 'good');
+    closeModal();
+    wasSoldOut = false;
+    await refresh();
+  };
+
+  $('reset').onclick = async () => {
+    const r = await post('/api/reset');
+    paintLog(r.msg + '，可重新预热', 'good');
+    closeModal();
+    wasSoldOut = false;
+    await refresh();
+  };
+
+  $('again').onclick = async () => {
+    await post('/api/reset');
+    const r = await post('/api/init');
+    closeModal();
+    wasSoldOut = false;
+    paintLog('已重置并重新预热：库存 ' + r.stock + ' 件，再来一轮', 'good');
+    await refresh();
+  };
+
+  $('close').onclick = closeModal;
+  $('mask').onclick = e => { if (e.target === $('mask')) closeModal(); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Enter' && !$('mask').classList.contains('show')) $('buy').click();
+  });
+
+  refresh();
+  setInterval(refresh, 800);
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  模板：复制成 settings.xml（settings.xml 已被 .gitignore 忽略，里面是本机绝对路径）。
+      copy settings.example.xml settings.xml
+
+  构建命令（Windows）：
+      & "IDEA自带的mvn.cmd" -s settings.xml clean package -DskipTests
+
+  说明：
+  - localRepository 换成你自己的 Maven 本地仓库路径，或整行删掉用默认的 ~/.m2/repository
+  - 镜像默认用阿里云，速度比中央仓库快
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <mirrors>
+        <mirror>
+            <id>aliyunmaven</id>
+            <mirrorOf>*</mirrorOf>
+            <name>aliyun public</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </mirror>
+    </mirrors>
+</settings>

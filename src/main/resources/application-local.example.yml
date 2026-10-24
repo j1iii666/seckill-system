@@ -1,0 +1,7 @@
+# 模板：复制成 application-local.yml，填上你自己的数据库账号密码
+#   copy src\main\resources\application-local.example.yml src\main\resources\application-local.yml
+# application-local.yml 已被 .gitignore 忽略，不会进仓库。
+spring:
+  datasource:
+    username: seckill
+    password: 改成你自己的数据库密码

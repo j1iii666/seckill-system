@@ -1,0 +1,33 @@
+server:
+  port: 8081
+  tomcat:
+    # 默认只有 200 个工作线程、100 个排队位，1000 并发会被直接拒
+    threads:
+      max: 500
+    accept-count: 3000
+    max-connections: 10000
+
+spring:
+  application:
+    name: seckill
+  # 账号密码不进仓库：本地值放 application-local.yml（已被 .gitignore 忽略）
+  # 也可以用环境变量 DB_USERNAME / DB_PASSWORD 覆盖。
+  # 仓库里另有一份 application-local.example.yml 作为模板。
+  profiles:
+    default: local
+  datasource:
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/seckill?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
+    username: ${DB_USERNAME:seckill}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+
+seckill:
+  goods-id: 1
+  stock-key: seckill:stock:1
+  queue-key: seckill:queue:1
+  processing-key: seckill:processing:1
+  users-key: seckill:users:1

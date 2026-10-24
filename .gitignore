@@ -1,0 +1,11 @@
+target/
+*.log
+.idea/
+*.iml
+*.class
+
+# 本地私密配置（数据库密码），模板见 application-local.example.yml
+src/main/resources/application-local.yml
+
+# 本机 Maven 设置（含本地仓库绝对路径），模板见 settings.example.xml
+settings.xml
